@@ -183,5 +183,3 @@ async def test_system_health_info_yaml_not_found(hass):
         'mode': 'yaml',
         'error': "{} not found".format(hass.config.path('ui-lovelace.yaml'))
     }
-
-
