@@ -1,9 +1,4 @@
-"""
-Support for Homekit device discovery.
-
-For more details about this component, please refer to the documentation at
-https://home-assistant.io/components/homekit_controller/
-"""
+"""Support for Homekit device discovery."""
 import json
 import logging
 import os
@@ -35,7 +30,7 @@ HOMEKIT_ACCESSORY_DISPATCH = {
 HOMEKIT_IGNORE = [
     'BSB002',
     'Home Assistant Bridge',
-    'TRADFRI gateway'
+    'TRADFRI gateway',
 ]
 
 KNOWN_ACCESSORIES = "{}-accessories".format(DOMAIN)
@@ -224,7 +219,12 @@ class HomeKitEntity(Entity):
                 if service['iid'] != self._iid:
                     continue
                 for char in service['characteristics']:
-                    uuid = CharacteristicsTypes.get_uuid(char['type'])
+                    try:
+                        uuid = CharacteristicsTypes.get_uuid(char['type'])
+                    except KeyError:
+                        # If a KeyError is raised its a non-standard
+                        # characteristic. We must ignore it in this case.
+                        continue
                     if uuid not in characteristic_types:
                         continue
                     self._setup_characteristic(char)
@@ -343,9 +343,17 @@ def setup(hass, config):
         # model, id
         host = discovery_info['host']
         port = discovery_info['port']
-        model = discovery_info['properties']['md']
-        hkid = discovery_info['properties']['id']
-        config_num = int(discovery_info['properties']['c#'])
+
+        # Fold property keys to lower case, making them effectively
+        # case-insensitive. Some HomeKit devices capitalize them.
+        properties = {
+            key.lower(): value
+            for (key, value) in discovery_info['properties'].items()
+        }
+
+        model = properties['md']
+        hkid = properties['id']
+        config_num = int(properties['c#'])
 
         if model in HOMEKIT_IGNORE:
             return
