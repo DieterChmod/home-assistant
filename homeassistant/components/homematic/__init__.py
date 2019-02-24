@@ -83,7 +83,7 @@ HM_DEVICE_TYPES = {
     DISCOVER_CLIMATE: [
         'Thermostat', 'ThermostatWall', 'MAXThermostat', 'ThermostatWall2',
         'MAXWallThermostat', 'IPThermostat', 'IPThermostatWall',
-        'ThermostatGroup', 'IPThermostatWall230V'],
+        'IPThermostatWall2', 'ThermostatGroup', 'IPThermostatWall230V'],
     DISCOVER_BINARY_SENSORS: [
         'ShutterContact', 'Smoke', 'SmokeV2', 'Motion', 'MotionV2',
         'MotionIP', 'RemoteMotion', 'WeatherSensor', 'TiltSensor',
