@@ -93,6 +93,7 @@ TEMPLATE_KEYS = (
 
 SCHEMA_BASE = CLIMATE_PLATFORM_SCHEMA.extend(MQTT_BASE_PLATFORM_SCHEMA.schema)
 PLATFORM_SCHEMA = SCHEMA_BASE.extend({
+    vol.Optional(CONF_RETAIN, default=mqtt.DEFAULT_RETAIN): cv.boolean,
     vol.Optional(CONF_POWER_COMMAND_TOPIC): mqtt.valid_publish_topic,
     vol.Optional(CONF_MODE_COMMAND_TOPIC): mqtt.valid_publish_topic,
     vol.Optional(CONF_TEMPERATURE_COMMAND_TOPIC): mqtt.valid_publish_topic,
@@ -230,7 +231,7 @@ class MqttClimate(MqttAttributes, MqttAvailability, MqttDiscoveryUpdate,
         await self.availability_discovery_update(config)
         await self.device_info_discovery_update(config)
         await self._subscribe_topics()
-        self.async_schedule_update_ha_state()
+        self.async_write_ha_state()
 
     def _setup_from_config(self, config):
         """(Re)Setup the entity."""
@@ -296,7 +297,7 @@ class MqttClimate(MqttAttributes, MqttAvailability, MqttDiscoveryUpdate,
 
             try:
                 self._current_temperature = float(payload)
-                self.async_schedule_update_ha_state()
+                self.async_write_ha_state()
             except ValueError:
                 _LOGGER.error("Could not parse temperature from %s", payload)
 
@@ -317,7 +318,7 @@ class MqttClimate(MqttAttributes, MqttAvailability, MqttDiscoveryUpdate,
                 _LOGGER.error("Invalid mode: %s", payload)
             else:
                 self._current_operation = payload
-                self.async_schedule_update_ha_state()
+                self.async_write_ha_state()
 
         if self._topic[CONF_MODE_STATE_TOPIC] is not None:
             topics[CONF_MODE_STATE_TOPIC] = {
@@ -335,7 +336,7 @@ class MqttClimate(MqttAttributes, MqttAvailability, MqttDiscoveryUpdate,
 
             try:
                 self._target_temperature = float(payload)
-                self.async_schedule_update_ha_state()
+                self.async_write_ha_state()
             except ValueError:
                 _LOGGER.error("Could not parse temperature from %s", payload)
 
@@ -357,7 +358,7 @@ class MqttClimate(MqttAttributes, MqttAvailability, MqttDiscoveryUpdate,
                 _LOGGER.error("Invalid fan mode: %s", payload)
             else:
                 self._current_fan_mode = payload
-                self.async_schedule_update_ha_state()
+                self.async_write_ha_state()
 
         if self._topic[CONF_FAN_MODE_STATE_TOPIC] is not None:
             topics[CONF_FAN_MODE_STATE_TOPIC] = {
@@ -377,7 +378,7 @@ class MqttClimate(MqttAttributes, MqttAvailability, MqttDiscoveryUpdate,
                 _LOGGER.error("Invalid swing mode: %s", payload)
             else:
                 self._current_swing_mode = payload
-                self.async_schedule_update_ha_state()
+                self.async_write_ha_state()
 
         if self._topic[CONF_SWING_MODE_STATE_TOPIC] is not None:
             topics[CONF_SWING_MODE_STATE_TOPIC] = {
@@ -406,7 +407,7 @@ class MqttClimate(MqttAttributes, MqttAvailability, MqttDiscoveryUpdate,
             else:
                 _LOGGER.error("Invalid away mode: %s", payload)
 
-            self.async_schedule_update_ha_state()
+            self.async_write_ha_state()
 
         if self._topic[CONF_AWAY_MODE_STATE_TOPIC] is not None:
             topics[CONF_AWAY_MODE_STATE_TOPIC] = {
@@ -434,7 +435,7 @@ class MqttClimate(MqttAttributes, MqttAvailability, MqttDiscoveryUpdate,
             else:
                 _LOGGER.error("Invalid aux mode: %s", payload)
 
-            self.async_schedule_update_ha_state()
+            self.async_write_ha_state()
 
         if self._topic[CONF_AUX_STATE_TOPIC] is not None:
             topics[CONF_AUX_STATE_TOPIC] = {
@@ -450,7 +451,7 @@ class MqttClimate(MqttAttributes, MqttAvailability, MqttDiscoveryUpdate,
                   async_render_with_possible_json_value(payload)
 
             self._hold = payload
-            self.async_schedule_update_ha_state()
+            self.async_write_ha_state()
 
         if self._topic[CONF_HOLD_STATE_TOPIC] is not None:
             topics[CONF_HOLD_STATE_TOPIC] = {
@@ -557,7 +558,8 @@ class MqttClimate(MqttAttributes, MqttAvailability, MqttDiscoveryUpdate,
                     kwargs.get(ATTR_TEMPERATURE), self._config.get(CONF_QOS),
                     self._config.get(CONF_RETAIN))
 
-        self.async_schedule_update_ha_state()
+        # Always optimistic?
+        self.async_write_ha_state()
 
     async def async_set_swing_mode(self, swing_mode):
         """Set new swing mode."""
@@ -570,7 +572,7 @@ class MqttClimate(MqttAttributes, MqttAvailability, MqttDiscoveryUpdate,
 
         if self._topic[CONF_SWING_MODE_STATE_TOPIC] is None:
             self._current_swing_mode = swing_mode
-            self.async_schedule_update_ha_state()
+            self.async_write_ha_state()
 
     async def async_set_fan_mode(self, fan_mode):
         """Set new target temperature."""
@@ -583,7 +585,7 @@ class MqttClimate(MqttAttributes, MqttAvailability, MqttDiscoveryUpdate,
 
         if self._topic[CONF_FAN_MODE_STATE_TOPIC] is None:
             self._current_fan_mode = fan_mode
-            self.async_schedule_update_ha_state()
+            self.async_write_ha_state()
 
     async def async_set_operation_mode(self, operation_mode) -> None:
         """Set new operation mode."""
@@ -608,7 +610,7 @@ class MqttClimate(MqttAttributes, MqttAvailability, MqttDiscoveryUpdate,
 
         if self._topic[CONF_MODE_STATE_TOPIC] is None:
             self._current_operation = operation_mode
-            self.async_schedule_update_ha_state()
+            self.async_write_ha_state()
 
     @property
     def current_swing_mode(self):
@@ -631,7 +633,7 @@ class MqttClimate(MqttAttributes, MqttAvailability, MqttDiscoveryUpdate,
 
         if self._topic[CONF_AWAY_MODE_STATE_TOPIC] is None:
             self._away = True
-            self.async_schedule_update_ha_state()
+            self.async_write_ha_state()
 
     async def async_turn_away_mode_off(self):
         """Turn away mode off."""
@@ -644,7 +646,7 @@ class MqttClimate(MqttAttributes, MqttAvailability, MqttDiscoveryUpdate,
 
         if self._topic[CONF_AWAY_MODE_STATE_TOPIC] is None:
             self._away = False
-            self.async_schedule_update_ha_state()
+            self.async_write_ha_state()
 
     async def async_set_hold_mode(self, hold_mode):
         """Update hold mode on."""
@@ -656,7 +658,7 @@ class MqttClimate(MqttAttributes, MqttAvailability, MqttDiscoveryUpdate,
 
         if self._topic[CONF_HOLD_STATE_TOPIC] is None:
             self._hold = hold_mode
-            self.async_schedule_update_ha_state()
+            self.async_write_ha_state()
 
     async def async_turn_aux_heat_on(self):
         """Turn auxiliary heater on."""
@@ -668,7 +670,7 @@ class MqttClimate(MqttAttributes, MqttAvailability, MqttDiscoveryUpdate,
 
         if self._topic[CONF_AUX_STATE_TOPIC] is None:
             self._aux = True
-            self.async_schedule_update_ha_state()
+            self.async_write_ha_state()
 
     async def async_turn_aux_heat_off(self):
         """Turn auxiliary heater off."""
@@ -680,7 +682,7 @@ class MqttClimate(MqttAttributes, MqttAvailability, MqttDiscoveryUpdate,
 
         if self._topic[CONF_AUX_STATE_TOPIC] is None:
             self._aux = False
-            self.async_schedule_update_ha_state()
+            self.async_write_ha_state()
 
     @property
     def supported_features(self):
