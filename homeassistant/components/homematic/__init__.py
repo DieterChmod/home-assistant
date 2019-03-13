@@ -74,7 +74,8 @@ HM_DEVICE_TYPES = {
         'IPWeatherSensor', 'RotaryHandleSensorIP', 'IPPassageSensor',
         'IPKeySwitchPowermeter', 'IPThermostatWall230V', 'IPWeatherSensorPlus',
         'IPWeatherSensorBasic', 'IPBrightnessSensor', 'IPGarage',
-        'UniversalSensor', 'MotionIPV2', 'IPMultiIO', 'IPThermostatWall2'],
+        'UniversalSensor', 'MotionIPV2', 'IPMultiIO', 'IPThermostatWall2',
+        'Thermostat', 'IPThermostat'],
     DISCOVER_CLIMATE: [
         'Thermostat', 'ThermostatWall', 'MAXThermostat', 'ThermostatWall2',
         'MAXWallThermostat', 'IPThermostat', 'IPThermostatWall',
@@ -99,7 +100,8 @@ HM_IGNORE_DISCOVERY_NODE_EXCEPTIONS = {
     'ACTUAL_TEMPERATURE': [
         'IPAreaThermostat', 'IPWeatherSensor',
         'IPWeatherSensorPlus', 'IPWeatherSensorBasic',
-        'IPThermostatWall', 'IPThermostatWall2'],
+        'IPThermostatWall', 'IPThermostatWall2',
+        'Thermostat', 'IPThermostat'],
 }
 
 HM_ATTRIBUTE_SUPPORT = {
